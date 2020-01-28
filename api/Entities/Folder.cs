@@ -12,6 +12,12 @@ namespace api.Entities
 
         public string FolderName { get; set; }
 
+        public FolderType FolderStatus { get; set; }
+
+        public string OwnerId { get; set; }
+        
         public ICollection<LegalCase> Cases { get; } = new List<LegalCase>();
+
+
     }
 }
