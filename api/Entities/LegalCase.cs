@@ -12,5 +12,12 @@ namespace api.Entities
         public long CaseId { get; set; }
         public long FolderId { get; set; }
         public Folder Folder { get; set; }
+
+        
+        /// <remarks>Insulates clients from changes to the CaseId format</remarks>
+        internal static bool IsValidCaseId(string caseId){
+            long n;
+            return Int64.TryParse(caseId, out n);
+        }
     }
 }

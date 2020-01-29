@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using api.Entities;
+using api.Models;
 
 namespace api.Controllers
 {
@@ -14,82 +14,77 @@ namespace api.Controllers
     public class FoldersController : ControllerBase
     {
         private readonly BackendContext _context;
+        private readonly ILogger<FoldersController> _logger;
 
-        public FoldersController(BackendContext context)
+        public FoldersController(BackendContext context, ILogger<FoldersController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // GET: api/Folders
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Folder>>> GetFolders()
+        public async Task<ActionResult<IEnumerable<FolderDTO>>> GetFolders([FromQuery]string user)
         {
-            return await _context.Folders.Include(l => l.Cases).ToListAsync();
+            var folders = await _context.Folders.Include(l => l.Cases).ToListAsync();
+
+            var folderDTOs = folders.Select(folder => folder.MapToDTO(Url)).ToList();
+
+            return folderDTOs;
         }
 
         // GET: api/Folders/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Folder>> GetFolder(long id)
+        [HttpGet("{folderId}")]
+        public async Task<ActionResult<FolderDTO>> GetFolder(long folderId)
         {
-            var folder = await _context.Folders.FindAsync(id);
+            var folder = await _context.Folders.Include(f => f.Cases).FirstOrDefaultAsync(f => f.Id == folderId);
 
             if (folder == null)
             {
                 return NotFound();
             }
 
-            return folder;
+            return folder.MapToDTO(Url);
         }
 
         // PUT: api/Folders/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
-        // more details see https://aka.ms/RazorPagesCRUD.
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutFolder(long id, Folder folder)
+        /// <summary>
+        /// Update a folder. Leaves contained cases unchanged.
+        /// </summary>
+        [HttpPut("{folderId}")]
+        public async Task<IActionResult> PutFolder(long folderId, FolderForUpdateDTO folderDTO)
         {
-            if (id != folder.Id)
+            var folder = await _context.Folders.FindAsync(folderId);
+
+            if (folder == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(folder).State = EntityState.Modified;
+            folderDTO.ApplyToEntity(folder);
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!FolderExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
         // POST: api/Folders
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
-        // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPost]
-        public async Task<ActionResult<Folder>> PostFolder(Folder folder)
+        public async Task<ActionResult<FolderDTO>> PostFolder(FolderForCreationDTO folderDTO)
         {
+            var folder = folderDTO.MapToEntity("userId");
+
             _context.Folders.Add(folder);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetFolder", new { id = folder.Id }, folder);
+            return CreatedAtAction("GetFolder", new { folderId = folder.Id }, folder.MapToDTO(Url));
         }
 
         // DELETE: api/Folders/5
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<Folder>> DeleteFolder(long id)
+        [HttpDelete("{folderId}")]
+        public async Task<IActionResult> DeleteFolder(long folderId)
         {
-            var folder = await _context.Folders.FindAsync(id);
+            var folder = await _context.Folders.FindAsync(folderId);
             if (folder == null)
             {
                 return NotFound();
@@ -98,7 +93,7 @@ namespace api.Controllers
             _context.Folders.Remove(folder);
             await _context.SaveChangesAsync();
 
-            return folder;
+            return NoContent();
         }
 
         private bool FolderExists(long id)

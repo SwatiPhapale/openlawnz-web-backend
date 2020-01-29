@@ -9,6 +9,8 @@ using api.Entities;
 using System.IO;
 using System.Reflection;
 using Microsoft.OpenApi.Models;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace api
 {
@@ -32,7 +34,14 @@ namespace api
             );
 
             // https://stackoverflow.com/questions/58207874/net-core-3-and-ef-core-3-include-problem-jsonexception
-            services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+            services.AddControllers().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+                options.JsonSerializerOptions.WriteIndented = (Configuration["PrettyPrintJson"] ?? "").Equals("true", StringComparison.OrdinalIgnoreCase);
+            });
+
+            //AddNewtonsoftJson(x => x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+            //options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
 
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
