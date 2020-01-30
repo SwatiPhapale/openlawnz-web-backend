@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace api.Controllers
 {
     [Route("api/Folders/{folderId}")]
+    [Authorize]
     [ApiController]
     public class CasesController : ControllerBase
     {
@@ -26,7 +27,6 @@ namespace api.Controllers
 
         // GET: api/Cases
         [HttpGet("~/api/Cases")]
-        [Authorize]
         public async Task<ActionResult<IEnumerable<LegalCaseDTO>>> GetLegalCases([FromQuery]string user)
         {
             var cases = await _context.Cases.ToListAsync();
@@ -40,7 +40,6 @@ namespace api.Controllers
         /// Add a case to a folder
         /// </summary>
         [HttpPut("Cases/{caseId}")]
-        [Authorize]
         public async Task<IActionResult> PutLegalCase(long folderId, string caseId)
         {
             if (!LegalCase.IsValidCaseId(caseId) || !FolderExists(folderId))
@@ -61,7 +60,6 @@ namespace api.Controllers
         /// Remove a case from a folder
         /// </summary>
         [HttpDelete("Cases/{caseId}")]
-        [Authorize]
         public async Task<IActionResult> DeleteLegalCase(long folderId, string caseId)
         {
             if (!LegalCase.IsValidCaseId(caseId)) return NotFound();
