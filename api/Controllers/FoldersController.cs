@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using api.Entities;
 using api.Models;
@@ -24,6 +25,7 @@ namespace api.Controllers
 
         // GET: api/Folders
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<FolderDTO>>> GetFolders([FromQuery]string user)
         {
             var folders = await _context.Folders.Include(l => l.Cases).ToListAsync();
@@ -35,6 +37,7 @@ namespace api.Controllers
 
         // GET: api/Folders/5
         [HttpGet("{folderId}")]
+        [Authorize]
         public async Task<ActionResult<FolderDTO>> GetFolder(long folderId)
         {
             var folder = await _context.Folders.Include(f => f.Cases).FirstOrDefaultAsync(f => f.Id == folderId);
@@ -52,6 +55,7 @@ namespace api.Controllers
         /// Update a folder. Leaves contained cases unchanged.
         /// </summary>
         [HttpPut("{folderId}")]
+        [Authorize]
         public async Task<IActionResult> PutFolder(long folderId, FolderForUpdateDTO folderDTO)
         {
             var folder = await _context.Folders.FindAsync(folderId);
@@ -70,6 +74,7 @@ namespace api.Controllers
 
         // POST: api/Folders
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<FolderDTO>> PostFolder(FolderForCreationDTO folderDTO)
         {
             var folder = folderDTO.MapToEntity("userId");
@@ -82,6 +87,7 @@ namespace api.Controllers
 
         // DELETE: api/Folders/5
         [HttpDelete("{folderId}")]
+        [Authorize]
         public async Task<IActionResult> DeleteFolder(long folderId)
         {
             var folder = await _context.Folders.FindAsync(folderId);
