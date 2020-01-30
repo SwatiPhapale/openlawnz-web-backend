@@ -1,3 +1,5 @@
 {
-    "razor.disabled": true
+    "razor.disabled": true,
+    "editor.tabSize": 4,
+    "editor.formatOnSave": true
 }
