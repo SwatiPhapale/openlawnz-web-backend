@@ -11,6 +11,7 @@ using System.Reflection;
 using Microsoft.OpenApi.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace api
 {
@@ -28,6 +29,16 @@ namespace api
         {
 
             var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+
+            services.AddAuthentication(options =>
+                    {
+                        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    }).AddJwtBearer(options =>
+                    {
+                        options.Authority = $"https://{Configuration["Auth0:Domain"]}/";
+                        options.Audience = Configuration["Auth0:Audience"];
+                    });
 
             services.AddDbContext<BackendContext>(options =>
                 options.UseNpgsql(connectionString)
@@ -76,6 +87,8 @@ namespace api
             });
 
             app.UseRouting();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using api.Entities;
 using api.Models;
@@ -10,6 +11,7 @@ using api.Models;
 namespace api.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class FoldersController : ControllerBase
     {
