@@ -12,47 +12,41 @@ using Microsoft.OpenApi.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 namespace api
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IWebHostEnvironment environment, IConfiguration configuration)
         {
             Configuration = configuration;
+            Environment = environment;
         }
 
         public IConfiguration Configuration { get; }
+        public IWebHostEnvironment Environment { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
 
-            var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+            var connectionString = Configuration["DB_CONNECTION_STRING"];
 
-            services.AddAuthentication(options =>
-                    {
-                        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                    }).AddJwtBearer(options =>
-                    {
-                        options.Authority = $"https://{Configuration["Auth0:Domain"]}/";
-                        options.Audience = Configuration["Auth0:Audience"];
-                    });
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddJwtBearer(setJwtBearerOptions);
 
             services.AddDbContext<BackendContext>(options =>
                 options.UseNpgsql(connectionString)
             );
 
-            // https://stackoverflow.com/questions/58207874/net-core-3-and-ef-core-3-include-problem-jsonexception
             services.AddControllers().AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
                 options.JsonSerializerOptions.WriteIndented = (Configuration["PrettyPrintJson"] ?? "").Equals("true", StringComparison.OrdinalIgnoreCase);
             });
-
-            //AddNewtonsoftJson(x => x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
-            //options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
 
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
@@ -97,5 +91,25 @@ namespace api
                 endpoints.MapControllers();
             });
         }
+
+        private void setJwtBearerOptions(JwtBearerOptions options)
+        {
+            options.Authority = $"https://{Configuration["Auth0:Domain"]}/";
+            options.Audience = Configuration["Auth0:Audience"];
+
+            // disable token validation in development
+            if (Environment.IsDevelopment())
+            {
+                options.Authority = null;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = false,
+                    SignatureValidator = (string token, TokenValidationParameters parameters) => new JwtSecurityToken(token)
+                };
+            }
+        }
     }
 }
+
