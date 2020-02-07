@@ -20,3 +20,9 @@ Wait for it to provision everything:
 Then select the Debug and Run option on the left hand side and press the play button.
 
 Visit http://localhost:5000/api/folders - which should show an empty array.
+
+## Testing
+
+1. Locate the container id with `docker ps`
+2. Run `docker exec -it <container id> "/bin/bash"`
+3. Run `dotnet test unittesting/unittesting.csproj`
