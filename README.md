@@ -25,4 +25,4 @@ Visit http://localhost:5000/api/folders - which should show an empty array.
 
 1. Locate the container id with `docker ps`
 2. Run `docker exec -it <container id> "/bin/bash"`
-3. Run `dotnet test unittesting/unittesting.csproj`
+3. Run `dotnet test api.tests/api.tests.csproj`

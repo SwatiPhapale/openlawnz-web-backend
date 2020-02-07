@@ -9,13 +9,13 @@ namespace Tests
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Sqlite;
     using Microsoft.Data.Sqlite;
-    using Microsoft.AspNetCore.Mvc;
+
     [TestFixture]
     public class FoldersControllerTests
     {
-        private FoldersController foldersController;
         private SqliteConnection sqliteConnection;
         private BackendContext backendContext;
+
         [SetUp]
         public void Setup()
         {
@@ -25,12 +25,12 @@ namespace Tests
             var options = new DbContextOptionsBuilder<BackendContext>()
                     .UseSqlite(sqliteConnection)
                     .Options;
+
             backendContext = new BackendContext(options);
             backendContext.Database.EnsureCreated();
-            Seeder.AddJoe(backendContext);
-            Seeder.AddMary(backendContext);
-            foldersController = new FoldersController(backendContext);
+            Seeder.Seed(backendContext);
         }
+
         [TearDown]
         public void TearDown()
         {
@@ -39,10 +39,9 @@ namespace Tests
         }
 
         [Test]
-        public async Task FoldersEmptyRequestShouldReturnNothing()
+        public void ExampleTest()
         {
-            var x = await foldersController.GetFolders();
-            Assert.True(true);
+            Assert.That(true);
         }
     }
 }
