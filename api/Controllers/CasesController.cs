@@ -29,8 +29,26 @@ namespace api.Controllers
         [HttpGet("~/api/Cases")]
         public async Task<ActionResult<IEnumerable<LegalCaseDTO>>> GetLegalCases([FromQuery]string user)
         {
-            var cases = await _context.Cases.ToListAsync();
-            var casesDTOs = cases.Select(c => c.MapToDTO(Url)).ToList();
+            List<LegalCaseDTO> casesDTOs = null;
+            if (!(string.IsNullOrEmpty(user)))
+            {
+                var Cases = await (from tblCases in _context.Cases
+                                   from tblFolders in _context.Folders
+                                   where (tblFolders.Id == tblCases.FolderId)
+                                  && (tblFolders.OwnerId == user)
+                                   select tblCases).ToListAsync();
+                casesDTOs = Cases.Select(c => c.MapToDTO(Url)).ToList();
+                if (casesDTOs.Count == 0) { return NotFound(); }
+            }
+            else
+            {
+                var Cases = await (from tblCases in _context.Cases
+                                   from tblFolders in _context.Folders
+                                   where (tblFolders.Id == tblCases.FolderId)
+                                  && (tblFolders.FolderStatus == FolderType.Listed)
+                                   select tblCases).ToListAsync();
+                casesDTOs = Cases.Select(c => c.MapToDTO(Url)).ToList();
+            }
 
             return casesDTOs;
         }

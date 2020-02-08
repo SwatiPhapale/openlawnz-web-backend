@@ -29,9 +29,19 @@ namespace api.Controllers
         public async Task<ActionResult<IEnumerable<FolderDTO>>> GetFolders([FromQuery]string user)
         {
             var folders = await _context.Folders.Include(l => l.Cases).ToListAsync();
+            List<FolderDTO> folderDTOs = null;
+            if (!(string.IsNullOrEmpty(user)))
+            {
 
-            var folderDTOs = folders.Select(folder => folder.MapToDTO(Url)).ToList();
+                folderDTOs = folders.Where(x => x.OwnerId == user).Select(folder => folder.MapToDTO(Url)).ToList();
+                if (folderDTOs.Count == 0)
+                { return NotFound(); }
+            }
+            else
+            {
+                folderDTOs = folders.Where(x => x.FolderStatus == FolderType.Listed).Select(folder => folder.MapToDTO(Url)).ToList();
 
+            }
             return folderDTOs;
         }
 
