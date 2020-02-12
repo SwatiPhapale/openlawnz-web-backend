@@ -32,22 +32,12 @@ namespace api.Controllers
             List<LegalCaseDTO> casesDTOs = null;
             if (!(string.IsNullOrEmpty(user)))
             {
-                var Cases = await (from tblCases in _context.Cases
-                                   from tblFolders in _context.Folders
-                                   where (tblFolders.Id == tblCases.FolderId)
-                                  && (tblFolders.OwnerId == user)
-                                   select tblCases).ToListAsync();
-                casesDTOs = Cases.Select(c => c.MapToDTO(Url)).ToList();
-                if (casesDTOs.Count == 0) { return NotFound(); }
-            }
-            else
-            {
-                var Cases = await (from tblCases in _context.Cases
-                                   from tblFolders in _context.Folders
-                                   where (tblFolders.Id == tblCases.FolderId)
-                                  && (tblFolders.FolderStatus == FolderType.Listed)
-                                   select tblCases).ToListAsync();
-                casesDTOs = Cases.Select(c => c.MapToDTO(Url)).ToList();
+                var cases = await (from tblcases in _context.Cases
+                                   from tblfolders in _context.Folders
+                                   where (tblfolders.Id == tblcases.FolderId)
+                                  && (tblfolders.OwnerId == user)
+                                   select tblcases).ToListAsync();
+                casesDTOs = cases.Select(c => c.MapToDTO(Url)).ToList();
             }
 
             return casesDTOs;

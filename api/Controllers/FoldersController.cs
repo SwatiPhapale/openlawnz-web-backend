@@ -28,18 +28,16 @@ namespace api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FolderDTO>>> GetFolders([FromQuery]string user)
         {
-            var folders = await _context.Folders.Include(l => l.Cases).ToListAsync();
+            var folders = _context.Folders.Include(l => l.Cases);
             List<FolderDTO> folderDTOs = null;
             if (!(string.IsNullOrEmpty(user)))
             {
 
-                folderDTOs = folders.Where(x => x.OwnerId == user).Select(folder => folder.MapToDTO(Url)).ToList();
-                if (folderDTOs.Count == 0)
-                { return NotFound(); }
+                folderDTOs = await folders.Where(x => x.OwnerId == user).Select(folder => folder.MapToDTO(Url)).ToListAsync();
             }
             else
             {
-                folderDTOs = folders.Where(x => x.FolderStatus == FolderType.Listed).Select(folder => folder.MapToDTO(Url)).ToList();
+                folderDTOs = await folders.Where(x => x.FolderStatus == FolderType.Listed).Select(folder => folder.MapToDTO(Url)).ToListAsync();
 
             }
             return folderDTOs;
